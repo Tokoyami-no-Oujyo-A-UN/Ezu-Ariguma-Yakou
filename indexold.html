@@ -16,6 +16,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* レイヤー1: 背景 */
 #container {
   position: relative;
   width: 100%;
@@ -25,9 +26,9 @@ html, body {
   overflow-x: scroll;
   overflow-y: hidden;
   white-space: nowrap;
-  scroll-behavior: smooth;
 }
 
+/* レイヤー2: 雲 */
 .cloud {
   position: absolute;
   top: 0;
@@ -38,25 +39,27 @@ html, body {
   pointer-events: none;
 }
 
+/* レイヤー3: キャラクター画像 */
 #charWrapper {
   display: inline-block;
   height: 100%;
   position: relative;
+  z-index: 3;
 }
 
 .charImg {
   display: inline-block;
-  vertical-align: top;
   height: 100%;
   cursor: pointer;
 }
 
+/* レイヤー4: 詳細テキストボックス（透過なし黒・上部固定） */
 #txtBox {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  background-color: rgba(0,0,0,0.7);
+  background-color: #000;
   color: #fff;
   padding: 10px;
   box-sizing: border-box;
@@ -66,30 +69,43 @@ html, body {
   max-height: 100%;
 }
 
-.navZone {
+/* レイヤー5: 左右タップ */
+#navLinks {
   position: absolute;
-  top: 0;
-  height: 100%;
-  width: 20%;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   z-index: 5;
+  text-align: center;
 }
-
-#leftZone {
-  left: 0;
+#prevChar, #nextChar {
+  display: inline-block;
+  height: 50px;
+  cursor: pointer;
 }
-
-#rightZone {
-  right: 0;
-}
+#prevChar { width: 40%; float: left; }
+#nextChar { width: 40%; float: right; }
+#navCenter { width: 20%; display:inline-block; height:50px; } /* 中央タップでtxt表示 */
 </style>
 </head>
 <body>
 <div id="container">
+  <!-- レイヤー2: 雲 -->
   <img id="cloud" class="cloud" src="">
+
+  <!-- レイヤー3: キャラクター画像 -->
   <div id="charWrapper"></div>
+
+  <!-- レイヤー4: 詳細テキストボックス -->
   <div id="txtBox"></div>
-  <div id="leftZone" class="navZone"></div>
-  <div id="rightZone" class="navZone"></div>
+  
+  <!-- レイヤー5: 左右ナビリンク -->
+  <div id="navLinks">
+    <a href="#" id="prevChar"></a>
+    <a href="#" id="navCenter"></a>
+    <a href="#" id="nextChar"></a>
+  </div>
 </div>
 
 <script>
@@ -99,7 +115,6 @@ var charMap = {
   2: { img:"02.png", kumo:"kumo_k.png", txt:"02.txt" },
   3: { img:"03.png", kumo:"kumo_w.png", txt:"03.txt" },
   4: { img:"04.png", kumo:"kumo_b.png", txt:"04.txt" }
-  // 必要に応じて追加
 };
 
 var charWrapper = document.getElementById('charWrapper');
@@ -108,7 +123,7 @@ var cloudImg = document.getElementById('cloud');
 var container = document.getElementById('container');
 var currentIndex = 1;
 
-// キャラクター画像生成
+// キャラクター生成
 for(var key in charMap){
   if(charMap.hasOwnProperty(key)){
     var c = charMap[key];
@@ -118,8 +133,10 @@ for(var key in charMap){
     img.setAttribute('data-key', key);
     img.onclick = function(e){
       e.stopPropagation();
-      var k = this.getAttribute('data-key');
+      var k = parseInt(this.getAttribute('data-key'));
+      currentIndex = k;
       loadText(k);
+      updateCloud(k);
     };
     charWrapper.appendChild(img);
   }
@@ -156,25 +173,7 @@ function loadText(index){
 // テキスト非表示
 txtBox.onclick = function(){ this.style.display='none'; };
 
-// ナビ操作
-document.getElementById('leftZone').onclick = function(e){
-  e.stopPropagation();
-  if(currentIndex>1){ currentIndex--; scrollToChar(currentIndex); }
-};
-
-document.getElementById('rightZone').onclick = function(e){
-  e.stopPropagation();
-  if(currentIndex<Object.keys(charMap).length){ currentIndex++; scrollToChar(currentIndex); }
-};
-
-// 中央タップで詳細表示
-container.onclick = function(e){
-  if(e.target.id==='container'){
-    loadText(currentIndex);
-  }
-};
-
-// キャラクター位置にスクロール
+// キャラクターにスクロール
 function scrollToChar(index){
   var target = charWrapper.querySelector('img[data-key="'+index+'"]');
   if(target){
@@ -188,7 +187,27 @@ function updateCloud(index){
   cloudImg.src = charMap[index].kumo;
 }
 
-// タッチ操作で横スクロール（簡易スワイプ）
+// 下部リンク操作
+document.getElementById('prevChar').onclick = function(e){
+  e.preventDefault();
+  if(currentIndex > 1){
+    currentIndex--;
+    scrollToChar(currentIndex);
+  }
+};
+document.getElementById('nextChar').onclick = function(e){
+  e.preventDefault();
+  if(currentIndex < Object.keys(charMap).length){
+    currentIndex++;
+    scrollToChar(currentIndex);
+  }
+};
+document.getElementById('navCenter').onclick = function(e){
+  e.preventDefault();
+  loadText(currentIndex);
+};
+
+// タッチ操作で横スクロール
 var startX = 0;
 var isTouching = false;
 container.addEventListener('touchstart', function(e){
