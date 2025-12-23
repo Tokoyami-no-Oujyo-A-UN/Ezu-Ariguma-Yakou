@@ -53,23 +53,22 @@ html, body {
   cursor: pointer;
 }
 
-/* レイヤー4: 詳細テキストボックス（透過なし黒・上部固定） */
+/* レイヤー4: 詳細テキストボックス（キャラ幅に合わせて中央寄せ） */
 #txtBox {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #000;
   color: #fff;
   padding: 10px;
   box-sizing: border-box;
   z-index: 4;
   display: none;
-  overflow-y: auto;
-  max-height: 100%;
+  max-width: 90%;
 }
 
-/* レイヤー5: 左右タップ */
+/* レイヤー5: 左右ナビリンク */
 #navLinks {
   position: absolute;
   bottom: 20px;
@@ -159,12 +158,22 @@ adjustHeight();
 
 // テキスト読み込み
 function loadText(index){
+  var target = charWrapper.querySelector('img[data-key="'+index+'"]');
+  if(!target) return;
+
   var xhr = new XMLHttpRequest();
   xhr.open('GET', charMap[index].txt, true);
   xhr.onreadystatechange = function(){
     if(xhr.readyState==4 && xhr.status==200){
       txtBox.innerText = xhr.responseText;
       txtBox.style.display = 'block';
+
+      // キャラクター画像の中央上に配置
+      var imgLeft = target.offsetLeft;
+      var imgWidth = target.offsetWidth;
+      txtBox.style.width = imgWidth + 'px';
+      txtBox.style.left = (imgLeft + imgWidth/2) + 'px';
+      txtBox.style.transform = 'translateX(-50%)';
     }
   };
   xhr.send();
