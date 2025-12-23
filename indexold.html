@@ -54,7 +54,7 @@ html, body {
   cursor: pointer;
 }
 
-/* レイヤー4: 詳細テキストボックス（全画面・前面） */
+/* レイヤー4: 全画面テキストボックス */
 #txtBox {
   position: fixed;
   top: 0;
@@ -71,7 +71,19 @@ html, body {
   white-space: pre-wrap;
 }
 
-/* レイヤー5: 下部左右ナビリンク */
+/* 左右20%タップ領域 */
+.sideTap {
+  position: fixed;
+  top: 0;
+  width: 20%;
+  height: 100%;
+  z-index: 50;
+  cursor: pointer;
+}
+#leftTap { left: 0; }
+#rightTap { right: 0; }
+
+/* 下部ナビリンク（残す場合） */
 #navLinks {
   position: absolute;
   bottom: 20px;
@@ -81,14 +93,7 @@ html, body {
   z-index: 5;
   text-align: center;
 }
-#prevChar, #nextChar {
-  display: inline-block;
-  height: 50px;
-  cursor: pointer;
-}
-#prevChar { width: 40%; float: left; }
-#nextChar { width: 40%; float: right; }
-#navCenter { width: 20%; display:inline-block; height:50px; } /* 中央タップでtxt表示 */
+#navCenter { width: 20%; display:inline-block; height:50px; }
 </style>
 </head>
 <body>
@@ -99,14 +104,16 @@ html, body {
   <!-- レイヤー3: キャラクター画像 -->
   <div id="charWrapper"></div>
 
-  <!-- レイヤー4: 詳細テキストボックス -->
+  <!-- レイヤー4: 全画面テキストボックス -->
   <div id="txtBox"></div>
-  
-  <!-- レイヤー5: 下部ナビリンク -->
+
+  <!-- 左右タップ領域 -->
+  <div id="leftTap" class="sideTap"></div>
+  <div id="rightTap" class="sideTap"></div>
+
+  <!-- 中央タップ用リンク -->
   <div id="navLinks">
-    <a href="#" id="prevChar"></a>
     <a href="#" id="navCenter"></a>
-    <a href="#" id="nextChar"></a>
   </div>
 </div>
 
@@ -158,7 +165,7 @@ function adjustHeight(){
 window.onresize = adjustHeight;
 adjustHeight();
 
-// 中央タップで全画面テキスト表示
+// 中央タップで全画面テキスト表示・再タップで閉じる
 function showText(index){
   if(txtBox.style.display === 'block'){
     txtBox.style.display = 'none';
@@ -193,21 +200,15 @@ function updateCloud(index){
   cloudImg.src = charMap[index].kumo;
 }
 
-// 下部リンク操作
-document.getElementById('prevChar').onclick = function(e){
-  e.preventDefault();
-  if(currentIndex > 1){
-    currentIndex--;
-    scrollToChar(currentIndex);
-  }
+// 左右タップ
+document.getElementById('leftTap').onclick = function(){ 
+  if(currentIndex > 1){ currentIndex--; scrollToChar(currentIndex); }
 };
-document.getElementById('nextChar').onclick = function(e){
-  e.preventDefault();
-  if(currentIndex < Object.keys(charMap).length){
-    currentIndex++;
-    scrollToChar(currentIndex);
-  }
+document.getElementById('rightTap').onclick = function(){
+  if(currentIndex < Object.keys(charMap).length){ currentIndex++; scrollToChar(currentIndex); }
 };
+
+// 中央タップでテキスト表示
 document.getElementById('navCenter').onclick = function(e){
   e.preventDefault();
   showText(currentIndex);
