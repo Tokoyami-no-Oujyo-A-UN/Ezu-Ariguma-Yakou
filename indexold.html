@@ -7,8 +7,8 @@
 html, body {
   margin:0;
   padding:0;
-  overflow-x:hidden;
-  overflow-y:hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   height:100%;
   width:100%;
   background: url('bg.jpg') no-repeat center center fixed;
@@ -16,40 +16,37 @@ html, body {
   touch-action: pan-x;
 }
 #gallery {
-  display:flex;
-  flex-direction:row;
+  white-space: nowrap;
   height:100%;
-  overflow-x:auto;
-  scroll-behavior: smooth;
 }
 .char-container {
-  flex-shrink:0;
+  display: inline-block;
   position: relative;
-  display:flex;
-  justify-content:center;
-  align-items:flex-end;
-  height:100%;
-  margin:0 10px;
+  vertical-align: bottom;
+  text-align: center;
+  height: 100%;
+  margin: 0 10px;
 }
 .char-img {
-  max-height:100%;
-  z-index:3;
-  cursor:pointer;
+  max-height: 100%;
+  z-index: 3;
+  cursor: pointer;
+  position: relative;
 }
-.kumo-img {
+#kumo {
   position: fixed;
   top:0;
   left:50%;
-  transform:translateX(-50%);
+  transform: translateX(-50%);
   max-height:100%;
   z-index:2;
   pointer-events:none;
 }
-.txt-box {
+#txtBox {
   position: fixed;
   top:10px;
   left:50%;
-  transform:translateX(-50%);
+  transform: translateX(-50%);
   background: rgba(0,0,0,0.7);
   color:#fff;
   padding:10px;
@@ -58,131 +55,118 @@ html, body {
   z-index:4;
   white-space: pre-wrap;
 }
-.nav-left, .nav-right {
-  position: fixed;
-  top:0;
-  width:20%;
-  height:100%;
-  z-index:5;
-}
-.nav-left { left:0; }
-.nav-right { right:0; }
 </style>
 </head>
 <body>
 
 <div id="gallery"></div>
-<img id="kumo" class="kumo-img" src="">
-<div class="txt-box" id="txtBox"></div>
-<div class="nav-left"></div>
-<div class="nav-right"></div>
+<img id="kumo" src="">
+<div id="txtBox"></div>
 
 <script>
-const charMap = {
+var charMap = {
   1: { img:"01.png", kumo:"kumo_b.png", txt:"01.txt" },
   2: { img:"02.png", kumo:"kumo_k.png", txt:"02.txt" },
   3: { img:"03.png", kumo:"kumo_w.png", txt:"03.txt" },
   4: { img:"04.png", kumo:"kumo_b.png", txt:"04.txt" }
-  // 必要に応じて追加
 };
 
-const gallery = document.getElementById('gallery');
-const txtBox = document.getElementById('txtBox');
-const kumoImg = document.getElementById('kumo');
-const navLeft = document.querySelector('.nav-left');
-const navRight = document.querySelector('.nav-right');
-let currentIndex = 1;
+var gallery = document.getElementById('gallery');
+var txtBox = document.getElementById('txtBox');
+var kumoImg = document.getElementById('kumo');
+var currentIndex = 1;
 
 // キャラクター生成
-for (let key in charMap){
-  const container = document.createElement('div');
-  container.className='char-container';
+for (var key in charMap){
+  var container = document.createElement('div');
+  container.className = 'char-container';
   container.dataset.index = key;
 
-  const charImg = document.createElement('img');
-  charImg.className='char-img';
+  var charImg = document.createElement('img');
+  charImg.className = 'char-img';
   charImg.src = charMap[key].img;
-
   container.appendChild(charImg);
   gallery.appendChild(container);
-
-  charImg.addEventListener('click', ()=>{
-    if(txtBox.style.display==='block'){
-      txtBox.style.display='none';
-    } else {
-      fetch(charMap[key].txt)
-        .then(res=>res.text())
-        .then(text=>{
-          txtBox.textContent=text;
-          txtBox.style.display='block';
-        });
-    }
-  });
 }
 
 // 初期雲
 kumoImg.src = charMap[currentIndex].kumo;
 
-// ナビ操作
-function scrollToIndex(index){
-  const container = document.querySelector(`.char-container[data-index='${index}']`);
-  if(container){
-    container.scrollIntoView({behavior:'smooth', inline:'center'});
-    currentIndex = parseInt(index);
+// 横スクロールに応じて雲切替
+function updateKumo() {
+  var containers = document.querySelectorAll('.char-container');
+  var closest = currentIndex;
+  var minDiff = Infinity;
+  for(var i=0;i<containers.length;i++){
+    var rect = containers[i].getBoundingClientRect();
+    var diff = Math.abs(window.innerWidth/2 - (rect.left+rect.width/2));
+    if(diff<minDiff){
+      minDiff=diff;
+      closest = parseInt(containers[i].dataset.index);
+    }
+  }
+  if(closest!==currentIndex){
+    currentIndex = closest;
     kumoImg.src = charMap[currentIndex].kumo;
     txtBox.style.display='none';
   }
 }
 
-navLeft.addEventListener('click', ()=>{ if(currentIndex>1) scrollToIndex(currentIndex-1); });
-navRight.addEventListener('click', ()=>{ if(currentIndex<Object.keys(charMap).length) scrollToIndex(currentIndex+1); });
+gallery.addEventListener('scroll', updateKumo);
 
-// タップ領域判定
-document.body.addEventListener('click', function(e){
-  const w = window.innerWidth;
-  const x = e.clientX;
-  if(x<w*0.2 && currentIndex>1) scrollToIndex(currentIndex-1);
-  else if(x>w*0.8 && currentIndex<Object.keys(charMap).length) scrollToIndex(currentIndex+1);
-});
-
-// スワイプ判定
-let startX=0;
-gallery.addEventListener('touchstart', e=>{ startX = e.touches[0].clientX; });
-gallery.addEventListener('touchend', e=>{
-  const endX = e.changedTouches[0].clientX;
-  const diff = endX-startX;
+// 左右/中央タップ判定
+var startX=0;
+gallery.addEventListener('touchstart', function(e){ startX=e.touches[0].clientX; });
+gallery.addEventListener('touchend', function(e){
+  var endX = e.changedTouches[0].clientX;
+  var diff = endX - startX;
+  var w = window.innerWidth;
+  // スワイプ
   if(diff>50 && currentIndex>1) scrollToIndex(currentIndex-1);
-  if(diff<-50 && currentIndex<Object.keys(charMap).length) scrollToIndex(currentIndex+1);
+  else if(diff<-50 && currentIndex<Object.keys(charMap).length) scrollToIndex(currentIndex+1);
+  else{
+    // タップ領域
+    if(endX<w*0.2 && currentIndex>1) scrollToIndex(currentIndex-1);
+    else if(endX>w*0.8 && currentIndex<Object.keys(charMap).length) scrollToIndex(currentIndex+1);
+    else showTxt(currentIndex);
+  }
 });
 
-// 横スクロールに応じた雲切替
-gallery.addEventListener('scroll', function(){
-  const containers = document.querySelectorAll('.char-container');
-  let closest=currentIndex;
-  let minDiff=Infinity;
-  for(let i=0;i<containers.length;i++){
-    const rect = containers[i].getBoundingClientRect();
-    const diff = Math.abs(window.innerWidth/2-(rect.left+rect.width/2));
-    if(diff<minDiff){
-      minDiff=diff;
-      closest=parseInt(containers[i].dataset.index);
-    }
-  }
-  if(closest!==currentIndex){
-    currentIndex=closest;
-    kumoImg.src=charMap[currentIndex].kumo;
+// スクロールして指定キャラクターを中央へ
+function scrollToIndex(index){
+  var container = document.querySelector('.char-container[data-index="'+index+'"]');
+  if(container){
+    var rect = container.getBoundingClientRect();
+    gallery.scrollLeft += rect.left + rect.width/2 - window.innerWidth/2;
+    currentIndex = index;
+    kumoImg.src = charMap[currentIndex].kumo;
     txtBox.style.display='none';
   }
-});
+}
+
+// テキスト表示（古いブラウザ対応 XMLHttpRequest）
+function showTxt(index){
+  var txtFile = charMap[index].txt;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', txtFile, true);
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState==4 && xhr.status==200){
+      txtBox.textContent = xhr.responseText;
+      txtBox.style.display='block';
+    }
+  };
+  xhr.send();
+}
 
 // リサイズ対応
 function resizeImgs(){
-  document.querySelectorAll('.char-img').forEach(img=>{ img.style.maxHeight = window.innerHeight+'px'; });
+  var imgs = document.querySelectorAll('.char-img');
+  for(var i=0;i<imgs.length;i++){ imgs[i].style.maxHeight = window.innerHeight+'px'; }
   kumoImg.style.maxHeight = window.innerHeight+'px';
 }
 window.addEventListener('resize', resizeImgs);
 resizeImgs();
-
 </script>
+
 </body>
 </html>
