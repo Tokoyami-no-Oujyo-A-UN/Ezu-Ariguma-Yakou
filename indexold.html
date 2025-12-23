@@ -32,15 +32,16 @@ html, body {
 }
 
 #scroll-container {
-  position:relative;
   display:flex;
   height:100%;
+  align-items:flex-start;
   z-index:2;
 }
 
 .item {
   flex:0 0 auto;
   height:100%;
+  margin-right:5px; /* キャラクター間隔 */
 }
 
 .item img {
@@ -69,22 +70,26 @@ html, body {
   cursor:pointer;
 }
 
-.nav-btn {
+.nav-container {
   position: fixed;
-  bottom:4%;
-  height:15%;
-  cursor:pointer;
-  z-index:200;
+  bottom: 15px; /* 下端から少し空ける */
+  left: 15px;
+  display: flex;
+  gap: 15px; /* 画像間隔 */
+  z-index: 999;
 }
 
-#prev { left:4%; }
-#next { left: calc(4% + 15% + 5px); }
-#detail-toggle { left: calc(4% + 2*(15% + 5px)); }
+.nav-btn img {
+  width: 50px;  /* 画像固定サイズ */
+  height: 50px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
 <div id="background"></div>
 <img id="kumo" src="kumo_w.png" alt="雲">
+
 <div id="scroll-container"></div>
 
 <div id="detail-panel">
@@ -92,9 +97,11 @@ html, body {
   <div id="detail-text"></div>
 </div>
 
-<img id="prev" class="nav-btn" src="0left.png">
-<img id="next" class="nav-btn" src="0right.png">
-<img id="detail-toggle" class="nav-btn" src="0moji_op.png">
+<div class="nav-container">
+  <div class="nav-btn" id="prev"><img src="0left.png"></div>
+  <div class="nav-btn" id="next"><img src="0right.png"></div>
+  <div class="nav-btn" id="detail-toggle"><img src="0moji_op.png"></div>
+</div>
 
 <script>
 // キャラクターマップ
@@ -111,10 +118,10 @@ const detailText = document.getElementById('detail-text');
 const detailClose = document.getElementById('detail-close');
 const kumoImg = document.getElementById('kumo');
 
-let currentIndex = Object.keys(charMap).length;
+let currentIndex = 1;  // 左端から開始
 let txtOpen = false;
 
-// 画像生成（横並び）
+// 画像生成（横並びで常に表示）
 for(let i=1;i<=Object.keys(charMap).length;i++){
   const div = document.createElement('div');
   div.className='item';
@@ -124,12 +131,8 @@ for(let i=1;i<=Object.keys(charMap).length;i++){
   scrollContainer.appendChild(div);
 }
 
-// キャラ切替関数
-function updateCharacter(){
-  const items = document.querySelectorAll('.item img');
-  for(let i=0;i<items.length;i++){
-    items[i].style.display = (i===currentIndex-1) ? 'block' : 'none';
-  }
+// 現在キャラクター更新（全キャラ表示、選択キャラのみ強調などは必要なら追加）
+function updateCharacter() {
   // 雲は即時切替
   kumoImg.src = charMap[currentIndex].kumo;
   closeDetail();
