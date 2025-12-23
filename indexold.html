@@ -29,9 +29,9 @@ html, body {
   scroll-behavior: smooth;
 }
 
-/* レイヤー2: 雲 */
+/* レイヤー2: 雲（固定） */
 .cloud {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
@@ -83,17 +83,15 @@ html, body {
 #leftTap { left: 0; }
 #rightTap { right: 0; }
 
-/* 下部ナビリンク（残す場合） */
-#navLinks {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  z-index: 5;
-  text-align: center;
+/* 中央タップ用リンク */
+#navCenter {
+  position: fixed;
+  top: 0;
+  left: 20%;
+  width: 60%;
+  height: 100%;
+  z-index: 40;
 }
-#navCenter { width: 20%; display:inline-block; height:50px; }
 </style>
 </head>
 <body>
@@ -111,10 +109,8 @@ html, body {
   <div id="leftTap" class="sideTap"></div>
   <div id="rightTap" class="sideTap"></div>
 
-  <!-- 中央タップ用リンク -->
-  <div id="navLinks">
-    <a href="#" id="navCenter"></a>
-  </div>
+  <!-- 中央タップ領域 -->
+  <div id="navCenter"></div>
 </div>
 
 <script>
@@ -191,30 +187,40 @@ function scrollToChar(index){
   var target = charWrapper.querySelector('img[data-key="'+index+'"]');
   if(target){
     container.scrollLeft = target.offsetLeft;
-    updateCloud(index);
   }
 }
 
-// 雲切替
+// 雲切替（固定表示なのでスクロール連動なし）
 function updateCloud(index){
   cloudImg.src = charMap[index].kumo;
 }
 
-// 左右タップ
-document.getElementById('leftTap').onclick = function(){ 
-  if(currentIndex > 1){ currentIndex--; scrollToChar(currentIndex); }
-};
-document.getElementById('rightTap').onclick = function(){
-  if(currentIndex < Object.keys(charMap).length){ currentIndex++; scrollToChar(currentIndex); }
-};
+// 左右タップ（touch対応）
+document.getElementById('leftTap').addEventListener('touchstart', function(e){
+  e.preventDefault();
+  if(txtBox.style.display !== 'block' && currentIndex > 1){
+    currentIndex--;
+    scrollToChar(currentIndex);
+    updateCloud(currentIndex);
+  }
+}, {passive:false});
+
+document.getElementById('rightTap').addEventListener('touchstart', function(e){
+  e.preventDefault();
+  if(txtBox.style.display !== 'block' && currentIndex < Object.keys(charMap).length){
+    currentIndex++;
+    scrollToChar(currentIndex);
+    updateCloud(currentIndex);
+  }
+}, {passive:false});
 
 // 中央タップでテキスト表示
-document.getElementById('navCenter').onclick = function(e){
+document.getElementById('navCenter').addEventListener('touchstart', function(e){
   e.preventDefault();
   showText(currentIndex);
-};
+}, {passive:false});
 
-// タッチ操作で横スクロール
+// スワイプ操作で横スクロール
 var startX = 0;
 var isTouching = false;
 container.addEventListener('touchstart', function(e){
