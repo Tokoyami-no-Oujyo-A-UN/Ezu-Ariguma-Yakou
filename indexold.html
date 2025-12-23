@@ -99,7 +99,7 @@ function updateKumo() {
   var minDiff = Infinity;
   for(var i=0;i<containers.length;i++){
     var rect = containers[i].getBoundingClientRect();
-    var diff = Math.abs(window.innerWidth/2 - (rect.left+rect.width/2));
+    var diff = Math.abs((window.innerHeight || document.documentElement.clientHeight)/2 - (rect.left+rect.width/2));
     if(diff<minDiff){
       minDiff=diff;
       closest = parseInt(containers[i].dataset.index);
@@ -158,11 +158,15 @@ function showTxt(index){
   xhr.send();
 }
 
-// リサイズ対応
+// txtボックスタップで非表示
+txtBox.addEventListener('touchend', function(){ txtBox.style.display='none'; });
+
+// リサイズ対応（縦サイズ修正）
 function resizeImgs(){
+  var h = window.innerHeight || document.documentElement.clientHeight;
   var imgs = document.querySelectorAll('.char-img');
-  for(var i=0;i<imgs.length;i++){ imgs[i].style.maxHeight = window.innerHeight+'px'; }
-  kumoImg.style.maxHeight = window.innerHeight+'px';
+  for(var i=0;i<imgs.length;i++){ imgs[i].style.maxHeight = h+'px'; }
+  kumoImg.style.maxHeight = h+'px';
 }
 window.addEventListener('resize', resizeImgs);
 resizeImgs();
