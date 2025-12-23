@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>キャラクター巻物UI - 旧端末用</title>
+<title>旧端末用キャラクター巻物UI</title>
 <style>
 html, body {
   margin: 0;
   padding: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  height: 100%;
   font-family: sans-serif;
-  background: #000;
+  height: 100%;
+  white-space: nowrap;
 }
 
 #background {
@@ -26,20 +26,9 @@ html, body {
   z-index: 0;
 }
 
-#kumo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  height: 100%;
-}
-
 #scroll-container {
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
+  position: relative;
   height: 100%;
-  z-index: 2;
 }
 
 .item {
@@ -49,19 +38,27 @@ html, body {
   text-align: center;
 }
 
-.item img {
+.item img.character {
   display: block;
   height: 100vh; /* ブラウザ縦サイズ */
 }
 
-.nav-btn {
+.item img.kumo {
   position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1;
+}
+
+.nav-btn {
+  display: inline-block;
+  margin: 0 7px;
   cursor: pointer;
-  z-index: 10;
 }
 
 #detail-panel {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -69,9 +66,9 @@ html, body {
   background-color: rgba(0,0,0,0.7);
   color: #fff;
   padding: 10px;
-  display: none;
-  z-index: 20;
   overflow-y: auto;
+  display: none;
+  z-index: 100;
 }
 
 #detail-close {
@@ -85,8 +82,8 @@ html, body {
 </style>
 </head>
 <body>
+
 <div id="background"></div>
-<img id="kumo" src="kumo_w.png" alt="雲">
 <div id="scroll-container"></div>
 
 <div id="detail-panel">
@@ -107,100 +104,93 @@ const scrollContainer = document.getElementById('scroll-container');
 const detailPanel = document.getElementById('detail-panel');
 const detailText = document.getElementById('detail-text');
 const detailClose = document.getElementById('detail-close');
-const kumoImg = document.getElementById('kumo');
 
+let currentIndex = Object.keys(charMap).length;
 let txtOpen = false;
 
-// キャラクター生成
-for(let i=1;i<=Object.keys(charMap).length;i++){
+// キャラクター DOM 生成
+for (let i = 1; i <= Object.keys(charMap).length; i++) {
   const div = document.createElement('div');
   div.className = 'item';
-  
-  const img = document.createElement('img');
-  img.src = charMap[i].img;
-  div.appendChild(img);
+  div.id = 'char-' + i;
 
-  // ナビボタン3個（左・右・詳細）
-  const leftBtn = document.createElement('img');
-  leftBtn.src = "0left.png";
-  leftBtn.className = "nav-btn";
-  leftBtn.style.top = "calc(100% - 50px)";
-  leftBtn.style.left = "0px";
-  leftBtn.width = 40;
-  leftBtn.height = 40;
-  leftBtn.addEventListener('click',()=>{ scrollToIndex(i-1); });
-  div.appendChild(leftBtn);
+  const kumoImg = document.createElement('img');
+  kumoImg.src = charMap[i].kumo;
+  kumoImg.className = 'kumo';
+  div.appendChild(kumoImg);
 
-  const rightBtn = document.createElement('img');
-  rightBtn.src = "0right.png";
-  rightBtn.className = "nav-btn";
-  rightBtn.style.top = "calc(100% - 50px)";
-  rightBtn.style.left = "55px";
-  rightBtn.width = 40;
-  rightBtn.height = 40;
-  rightBtn.addEventListener('click',()=>{ scrollToIndex(i+1); });
-  div.appendChild(rightBtn);
+  const charImg = document.createElement('img');
+  charImg.src = charMap[i].img;
+  charImg.className = 'character';
+  div.appendChild(charImg);
 
-  const detailBtn = document.createElement('img');
-  detailBtn.src = "0moji_op.png";
-  detailBtn.className = "nav-btn";
-  detailBtn.style.top = "calc(100% - 50px)";
-  detailBtn.style.left = "110px";
-  detailBtn.width = 40;
-  detailBtn.height = 40;
-  detailBtn.addEventListener('click',()=>{ openDetail(i); });
-  div.appendChild(detailBtn);
+  // ナビボタン
+  const btnPrev = document.createElement('img');
+  btnPrev.src = '0left.png';
+  btnPrev.className = 'nav-btn';
+  btnPrev.onclick = () => scrollToChar(i-1);
+  div.appendChild(btnPrev);
+
+  const btnNext = document.createElement('img');
+  btnNext.src = '0right.png';
+  btnNext.className = 'nav-btn';
+  btnNext.onclick = () => scrollToChar(i+1);
+  div.appendChild(btnNext);
+
+  const btnDetail = document.createElement('img');
+  btnDetail.src = '0moji_op.png';
+  btnDetail.className = 'nav-btn';
+  btnDetail.onclick = () => toggleDetail(i);
+  div.appendChild(btnDetail);
 
   scrollContainer.appendChild(div);
 }
 
-// txt操作
-detailClose.addEventListener('click', closeDetail);
+// スクロール関数
+function scrollToChar(index) {
+  if(index < 1) index = 1;
+  if(index > Object.keys(charMap).length) index = Object.keys(charMap).length;
+  const target = document.getElementById('char-' + index);
+  if(target) target.scrollIntoView({behavior:'auto', inline:'start'});
+  currentIndex = index;
+  closeDetail();
+  updateKumo(index);
+}
 
-function openDetail(index){
+// 雲切替（即時）
+function updateKumo(index) {
+  const items = document.querySelectorAll('.item');
+  items.forEach(item => {
+    const kumoImg = item.querySelector('.kumo');
+    kumoImg.style.display = (item.id === 'char-' + index) ? 'block' : 'none';
+  });
+}
+
+// 詳細テキスト表示
+function toggleDetail(index) {
+  if(txtOpen) { closeDetail(); return; }
   txtOpen = true;
   const txtFile = charMap[index].txt;
-  fetch(txtFile).then(res=>res.text()).then(data=>{
-    detailText.innerText = data;
-    detailPanel.style.display = 'block';
-  });
+  fetch(txtFile)
+    .then(res => res.text())
+    .then(data => {
+      detailText.innerText = data;
+      detailPanel.style.display = 'block';
+    });
 }
 
-function closeDetail(){
-  txtOpen=false;
-  detailPanel.style.display='none';
-  detailText.innerText='';
+function closeDetail() {
+  txtOpen = false;
+  detailPanel.style.display = 'none';
+  detailText.innerText = '';
 }
 
-// スクロールと雲切替
-function scrollToIndex(idx){
-  if(idx<1) idx=1;
-  if(idx>Object.keys(charMap).length) idx=Object.keys(charMap).length;
+// 閉じるボタン
+detailClose.addEventListener('click', closeDetail);
 
-  const items = document.querySelectorAll('.item');
-  const target = items[idx-1];
-  if(!target) return;
-  scrollContainer.scrollLeft = target.offsetLeft;
-
-  // 雲差し替え
-  kumoImg.src = charMap[idx].kumo;
-
-  // txt閉じる
-  closeDetail();
-}
-
-// 初期位置は最後のキャラ
-window.addEventListener('load', ()=>{
-  scrollToIndex(Object.keys(charMap).length);
-});
-
-// ウィンドウリサイズで画像高さ調整
-window.addEventListener('resize', ()=>{
-  const imgs = document.querySelectorAll('.item img');
-  imgs.forEach(img=>{
-    img.style.height = window.innerHeight+'px';
-  });
-  kumoImg.style.height = window.innerHeight+'px';
+// 初期表示
+window.addEventListener('load', () => {
+  scrollToChar(currentIndex);
 });
 </script>
 </body>
