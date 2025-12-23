@@ -16,24 +16,18 @@ const kumoImg = document.getElementById('kumo');
 let currentIndex = Object.keys(charMap).length; // 初期表示は最大番号
 let txtOpen = false;
 
-// 旧スマホ判定（Android / iOS）
-const userAgent = navigator.userAgent;
-const isOldMobile = /Android\s[0-6]|iPhone|iPad|iPod.*OS\s[0-9_]/.test(userAgent);
-
 // 画像生成
-for (let i=1; i<=Object.keys(charMap).length; i++){
+for (let i=1;i<=Object.keys(charMap).length;i++){
   const div = document.createElement('div');
   div.className = 'item';
   const img = document.createElement('img');
   img.src = charMap[i].img;
-  img.alt = "キャラクター" + i;
   div.appendChild(img);
   scrollContainer.appendChild(div);
 }
 
-// 中央寄せスクロール（スムーズ補間）
+// 中央寄せスクロール
 function smoothScrollTo(container, targetLeft, duration = 2000){
-  if(isOldMobile){ container.scrollLeft = targetLeft; return; }
   const start = container.scrollLeft;
   const change = targetLeft - start;
   const startTime = performance.now();
@@ -64,13 +58,6 @@ function scrollToCurrent(){
 function updateKumo(index){
   const kumoFile = charMap[index].kumo;
   if(kumoImg.src.includes(kumoFile)) return;
-
-  if(isOldMobile){
-    kumoImg.src = kumoFile; // 即時切替
-    kumoImg.style.left = -scrollContainer.scrollLeft*0.3 + 'px';
-    return;
-  }
-
   const newKumo = document.createElement('img');
   newKumo.src = kumoFile;
   newKumo.style.position='absolute';
@@ -111,20 +98,15 @@ function openDetail(){
 }
 function closeDetail(){ txtOpen=false; detailPanel.style.display='none'; detailText.innerText=''; }
 
-// 初期表示（右端）
-window.addEventListener('load',()=>{ 
-  const container = scrollContainer;
-  container.scrollLeft = container.scrollWidth - container.offsetWidth;
-  updateKumo(currentIndex);
-});
+// 初期位置
+window.addEventListener('load',()=>{ scrollToCurrent(); });
 
 // 雲横スクロール連動（パララックス）
 scrollContainer.addEventListener('scroll',()=>{
-  if(isOldMobile){ kumoImg.style.left = -scrollContainer.scrollLeft*0.3 + 'px'; return; }
   kumoImg.style.left = -scrollContainer.scrollLeft*0.3 + 'px';
 });
 
-// タッチ操作対応
+// タッチ操作対応（スマホ）
 let startX=0, scrollStart=0;
 scrollContainer.addEventListener('touchstart', e=>{ startX=e.touches[0].pageX; scrollStart=scrollContainer.scrollLeft; });
 scrollContainer.addEventListener('touchmove', e=>{

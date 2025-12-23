@@ -7,22 +7,27 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="background"></div>
-  <img id="kumo" src="kumo_w.png" alt="雲">
 
-  <div id="scroll-container"></div>
+<div id="background"></div>
+<img id="kumo" src="kumo_w.png" alt="雲">
+<div id="scroll-container"></div>
 
-  <div id="detail-panel">
-    <div id="detail-close"><img src="0moji_cl.png" alt="閉じる"></div>
-    <div id="detail-text"></div>
-  </div>
+<div id="detail-panel">
+  <div id="detail-close"><img src="0moji_cl.png" style="width:100%; height:100%;"></div>
+  <div id="detail-text"></div>
+</div>
 
-  <div id="nav-container">
-    <img id="prev" class="nav-btn" src="0left.png" alt="左へ">
-    <img id="next" class="nav-btn" src="0right.png" alt="右へ">
-    <img id="detail-toggle" class="nav-btn" src="0moji_op.png" alt="詳細開く">
-  </div>
+<img id="prev" class="nav-btn" src="0left.png">
+<img id="next" class="nav-btn" src="0right.png">
+<img id="detail-toggle" class="nav-btn" src="0moji_op.png">
 
 <script src="script.js"></script>
+<script>
+// 旧端末判定（Android/iOS古いバージョン）でリダイレクト
+const ua = navigator.userAgent;
+if(/Android\s([0-7]|8\.0)|iPhone.*OS\s([0-9_]|1[0-1])/.test(ua)){
+    location.href = "indexold.html";
+}
+</script>
 </body>
 </html>

@@ -35,6 +35,7 @@ html, body {
   overflow-y: hidden;
   height: 100%;
   z-index: 2;
+  scroll-behavior: smooth;
 }
 
 .item {
@@ -77,17 +78,14 @@ html, body {
   cursor: pointer;
 }
 
-#nav-container {
+.nav-btn {
   position: fixed;
   bottom: 4%;
-  left: 4%;
   height: 15%;
-  display: flex;
-  gap: 5px;
+  cursor: pointer;
   z-index: 200;
 }
 
-.nav-btn {
-  height: 100%;
-  cursor: pointer;
-}
+#prev { left: 4%; }
+#next { left: calc(4% + 15% + 5px); }
+#detail-toggle { left: calc(4% + 2*(15% + 5px)); }
