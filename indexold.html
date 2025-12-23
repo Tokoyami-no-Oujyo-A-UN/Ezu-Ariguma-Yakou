@@ -26,6 +26,7 @@ html, body {
   overflow-x: scroll;
   overflow-y: hidden;
   white-space: nowrap;
+  scroll-behavior: smooth;
 }
 
 /* レイヤー2: 雲 */
@@ -53,12 +54,10 @@ html, body {
   cursor: pointer;
 }
 
-/* レイヤー4: 詳細テキストボックス（キャラ幅に合わせて中央寄せ） */
+/* レイヤー4: 詳細テキストボックス（キャラ上に中央寄せ） */
 #txtBox {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
   background-color: #000;
   color: #fff;
   padding: 10px;
@@ -68,7 +67,7 @@ html, body {
   max-width: 90%;
 }
 
-/* レイヤー5: 左右ナビリンク */
+/* レイヤー5: 下部左右ナビリンク */
 #navLinks {
   position: absolute;
   bottom: 20px;
@@ -99,7 +98,7 @@ html, body {
   <!-- レイヤー4: 詳細テキストボックス -->
   <div id="txtBox"></div>
   
-  <!-- レイヤー5: 左右ナビリンク -->
+  <!-- レイヤー5: 下部ナビリンク -->
   <div id="navLinks">
     <a href="#" id="prevChar"></a>
     <a href="#" id="navCenter"></a>
@@ -132,10 +131,9 @@ for(var key in charMap){
     img.setAttribute('data-key', key);
     img.onclick = function(e){
       e.stopPropagation();
-      var k = parseInt(this.getAttribute('data-key'));
-      currentIndex = k;
-      loadText(k);
-      updateCloud(k);
+      currentIndex = parseInt(this.getAttribute('data-key'));
+      showText(currentIndex);
+      updateCloud(currentIndex);
     };
     charWrapper.appendChild(img);
   }
@@ -144,7 +142,7 @@ for(var key in charMap){
 // 初期雲
 updateCloud(currentIndex);
 
-// ウィンドウサイズに合わせて高さ調整
+// ウィンドウサイズ調整
 function adjustHeight(){
   var h = window.innerHeight;
   var imgs = document.getElementsByClassName('charImg');
@@ -156,8 +154,8 @@ function adjustHeight(){
 window.onresize = adjustHeight;
 adjustHeight();
 
-// テキスト読み込み
-function loadText(index){
+// キャラクター上にテキスト表示
+function showText(index){
   var target = charWrapper.querySelector('img[data-key="'+index+'"]');
   if(!target) return;
 
@@ -168,11 +166,12 @@ function loadText(index){
       txtBox.innerText = xhr.responseText;
       txtBox.style.display = 'block';
 
-      // キャラクター画像の中央上に配置
+      // キャラクター画像の上に中央寄せ
+      var scrollLeft = container.scrollLeft;
       var imgLeft = target.offsetLeft;
       var imgWidth = target.offsetWidth;
       txtBox.style.width = imgWidth + 'px';
-      txtBox.style.left = (imgLeft + imgWidth/2) + 'px';
+      txtBox.style.left = (imgLeft - scrollLeft + imgWidth/2) + 'px';
       txtBox.style.transform = 'translateX(-50%)';
     }
   };
@@ -182,7 +181,7 @@ function loadText(index){
 // テキスト非表示
 txtBox.onclick = function(){ this.style.display='none'; };
 
-// キャラクターにスクロール
+// 横スクロール
 function scrollToChar(index){
   var target = charWrapper.querySelector('img[data-key="'+index+'"]');
   if(target){
@@ -213,7 +212,7 @@ document.getElementById('nextChar').onclick = function(e){
 };
 document.getElementById('navCenter').onclick = function(e){
   e.preventDefault();
-  loadText(currentIndex);
+  showText(currentIndex);
 };
 
 // タッチ操作で横スクロール
@@ -230,7 +229,6 @@ container.addEventListener('touchmove', function(e){
   startX = e.touches[0].pageX;
 });
 container.addEventListener('touchend', function(e){ isTouching=false; });
-
 </script>
 </body>
 </html>
