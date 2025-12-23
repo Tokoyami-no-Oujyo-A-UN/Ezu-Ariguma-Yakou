@@ -54,17 +54,20 @@ html, body {
   cursor: pointer;
 }
 
-/* レイヤー4: 詳細テキストボックス（キャラ上に中央寄せ） */
+/* レイヤー4: 詳細テキストボックス（画面中央・幅90%固定） */
 #txtBox {
   position: absolute;
-  top: 0;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px; /* 任意のPixel上限 */
   background-color: #000;
   color: #fff;
   padding: 10px;
   box-sizing: border-box;
   z-index: 4;
   display: none;
-  max-width: 90%;
 }
 
 /* レイヤー5: 下部左右ナビリンク */
@@ -154,25 +157,14 @@ function adjustHeight(){
 window.onresize = adjustHeight;
 adjustHeight();
 
-// キャラクター上にテキスト表示
+// 中央画面にテキスト表示
 function showText(index){
-  var target = charWrapper.querySelector('img[data-key="'+index+'"]');
-  if(!target) return;
-
   var xhr = new XMLHttpRequest();
   xhr.open('GET', charMap[index].txt, true);
   xhr.onreadystatechange = function(){
     if(xhr.readyState==4 && xhr.status==200){
       txtBox.innerText = xhr.responseText;
       txtBox.style.display = 'block';
-
-      // キャラクター画像の上に中央寄せ
-      var scrollLeft = container.scrollLeft;
-      var imgLeft = target.offsetLeft;
-      var imgWidth = target.offsetWidth;
-      txtBox.style.width = imgWidth + 'px';
-      txtBox.style.left = (imgLeft - scrollLeft + imgWidth/2) + 'px';
-      txtBox.style.transform = 'translateX(-50%)';
     }
   };
   xhr.send();
