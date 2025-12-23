@@ -29,7 +29,7 @@ html, body {
   scroll-behavior: smooth;
 }
 
-/* レイヤー2: 雲（固定） */
+/* レイヤー2: 雲（固定表示） */
 .cloud {
   position: fixed;
   top: 0;
@@ -71,26 +71,26 @@ html, body {
   white-space: pre-wrap;
 }
 
-/* 左右20%タップ領域 */
+/* 左右20%タップ領域（最前面） */
 .sideTap {
   position: fixed;
   top: 0;
   width: 20%;
   height: 100%;
-  z-index: 50;
+  z-index: 200; /* txtBoxより前面 */
   cursor: pointer;
 }
 #leftTap { left: 0; }
 #rightTap { right: 0; }
 
-/* 中央タップ用リンク */
+/* 中央タップ領域（txtBox表示切替用） */
 #navCenter {
   position: fixed;
   top: 0;
   left: 20%;
   width: 60%;
   height: 100%;
-  z-index: 40;
+  z-index: 150;
 }
 </style>
 </head>
@@ -190,7 +190,7 @@ function scrollToChar(index){
   }
 }
 
-// 雲切替（固定表示なのでスクロール連動なし）
+// 雲切替（固定表示）
 function updateCloud(index){
   cloudImg.src = charMap[index].kumo;
 }
@@ -198,7 +198,7 @@ function updateCloud(index){
 // 左右タップ（touch対応）
 document.getElementById('leftTap').addEventListener('touchstart', function(e){
   e.preventDefault();
-  if(txtBox.style.display !== 'block' && currentIndex > 1){
+  if(currentIndex > 1){
     currentIndex--;
     scrollToChar(currentIndex);
     updateCloud(currentIndex);
@@ -207,7 +207,7 @@ document.getElementById('leftTap').addEventListener('touchstart', function(e){
 
 document.getElementById('rightTap').addEventListener('touchstart', function(e){
   e.preventDefault();
-  if(txtBox.style.display !== 'block' && currentIndex < Object.keys(charMap).length){
+  if(currentIndex < Object.keys(charMap).length){
     currentIndex++;
     scrollToChar(currentIndex);
     updateCloud(currentIndex);
