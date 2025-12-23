@@ -170,6 +170,16 @@ function resizeImgs(){
 }
 window.addEventListener('resize', resizeImgs);
 resizeImgs();
+
+
+window.addEventListener('load', function() {
+  // ページロード時に少しスクロール
+  setTimeout(function() {
+    window.scrollTo(0, 1);
+  }, 100);
+});
+
+
 </script>
 
 </body>
